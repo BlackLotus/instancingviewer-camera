@@ -73,35 +73,35 @@ struct Cube
 };
 
 static const Vertex vertex_data[] = {
-   { { -1, -1, -1, 1 }, { 0, 0, -1, 0 }, { 0, 0 } }, // Front
-   { {  1, -1, -1, 1 }, { 0, 0, -1, 0 }, { 1, 0 } },
-   { { -1,  1, -1, 1 }, { 0, 0, -1, 0 }, { 0, 1 } },
-   { {  1,  1, -1, 1 }, { 0, 0, -1, 0 }, { 1, 1 } },
+   { { -1, -1, -1, 1 }, { 0, 0, -1, 0 }, { 0, 1 } }, // Front
+   { {  1, -1, -1, 1 }, { 0, 0, -1, 0 }, { 1, 1 } },
+   { { -1,  1, -1, 1 }, { 0, 0, -1, 0 }, { 0, 0 } },
+   { {  1,  1, -1, 1 }, { 0, 0, -1, 0 }, { 1, 0 } },
 
-   { {  1, -1,  1, 1 }, { 0, 0,  1, 0 }, { 0, 0 } }, // Back
-   { { -1, -1,  1, 1 }, { 0, 0,  1, 0 }, { 1, 0 } },
-   { {  1,  1,  1, 1 }, { 0, 0,  1, 0 }, { 0, 1 } },
-   { { -1,  1,  1, 1 }, { 0, 0,  1, 0 }, { 1, 1 } },
+   { {  1, -1,  1, 1 }, { 0, 0,  1, 0 }, { 0, 1 } }, // Back
+   { { -1, -1,  1, 1 }, { 0, 0,  1, 0 }, { 1, 1 } },
+   { {  1,  1,  1, 1 }, { 0, 0,  1, 0 }, { 0, 0 } },
+   { { -1,  1,  1, 1 }, { 0, 0,  1, 0 }, { 1, 0 } },
    
-   { { -1, -1,  1, 1 }, { -1, 0, 0, 0 }, { 0, 0 } }, // Left
-   { { -1, -1, -1, 1 }, { -1, 0, 0, 0 }, { 1, 0 } },
-   { { -1,  1,  1, 1 }, { -1, 0, 0, 0 }, { 0, 1 } },
-   { { -1,  1, -1, 1 }, { -1, 0, 0, 0 }, { 1, 1 } },
+   { { -1, -1,  1, 1 }, { -1, 0, 0, 0 }, { 0, 1 } }, // Left
+   { { -1, -1, -1, 1 }, { -1, 0, 0, 0 }, { 1, 1 } },
+   { { -1,  1,  1, 1 }, { -1, 0, 0, 0 }, { 0, 0 } },
+   { { -1,  1, -1, 1 }, { -1, 0, 0, 0 }, { 1, 0 } },
 
-   { { 1, -1, -1, 1 }, { 1, 0, 0, 0 }, { 0, 0 } }, // Right
-   { { 1, -1,  1, 1 }, { 1, 0, 0, 0 }, { 1, 0 } },
-   { { 1,  1, -1, 1 }, { 1, 0, 0, 0 }, { 0, 1 } },
-   { { 1,  1,  1, 1 }, { 1, 0, 0, 0 }, { 1, 1 } },
+   { { 1, -1, -1, 1 }, { 1, 0, 0, 0 }, { 0, 1 } }, // Right
+   { { 1, -1,  1, 1 }, { 1, 0, 0, 0 }, { 1, 1 } },
+   { { 1,  1, -1, 1 }, { 1, 0, 0, 0 }, { 0, 0 } },
+   { { 1,  1,  1, 1 }, { 1, 0, 0, 0 }, { 1, 0 } },
 
-   { { -1,  1, -1, 1 }, { 0, 1, 0, 0 }, { 0, 0 } }, // Top
-   { {  1,  1, -1, 1 }, { 0, 1, 0, 0 }, { 1, 0 } },
-   { { -1,  1,  1, 1 }, { 0, 1, 0, 0 }, { 0, 1 } },
-   { {  1,  1,  1, 1 }, { 0, 1, 0, 0 }, { 1, 1 } },
+   { { -1,  1, -1, 1 }, { 0, 1, 0, 0 }, { 0, 1 } }, // Top
+   { {  1,  1, -1, 1 }, { 0, 1, 0, 0 }, { 1, 1 } },
+   { { -1,  1,  1, 1 }, { 0, 1, 0, 0 }, { 0, 0 } },
+   { {  1,  1,  1, 1 }, { 0, 1, 0, 0 }, { 1, 0 } },
 
-   { { -1, -1,  1, 1 }, { 0, -1, 0, 0 }, { 0, 0 } }, // Bottom
-   { {  1, -1,  1, 1 }, { 0, -1, 0, 0 }, { 1, 0 } },
-   { { -1, -1, -1, 1 }, { 0, -1, 0, 0 }, { 0, 1 } },
-   { {  1, -1, -1, 1 }, { 0, -1, 0, 0 }, { 1, 1 } },
+   { { -1, -1,  1, 1 }, { 0, -1, 0, 0 }, { 0, 1 } }, // Bottom
+   { {  1, -1,  1, 1 }, { 0, -1, 0, 0 }, { 1, 1 } },
+   { { -1, -1, -1, 1 }, { 0, -1, 0, 0 }, { 0, 0 } },
+   { {  1, -1, -1, 1 }, { 0, -1, 0, 0 }, { 1, 0 } },
 };
 
 static const GLubyte indices[] = {
@@ -214,8 +214,43 @@ static void setup_vao(void)
    update = true;
 }
 
+#ifdef EMSCRIPTEN
+#ifdef __cplusplus
+extern "C" {
+#endif
+int RWebCamInit(void);
+int RWebCamTexImage2D(int *width, int *height);
+int RWebCamTexSubImage2D(int x, int y);
+int RWebCamReady(void);
+void RWebCamFree(void);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 static GLuint load_texture(const char *path)
 {
+#ifdef EMSCRIPTEN
+   (void)path;
+   int width, height;
+
+   if (!RWebCamReady())
+      return 0;
+
+   GLuint tex;
+   SYM(glGenTextures)(1, &tex);
+   SYM(glBindTexture)(GL_TEXTURE_2D, tex);
+
+   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+   RWebCamTexImage2D(&width, &height);
+
+   printf("WebCam - width: %d  height: %d\n", width, height);
+   return tex;
+#else
    uint8_t *data;
    unsigned width, height;
    if (!rpng_load_image_rgba(path, &data, &width, &height))
@@ -235,13 +270,22 @@ static GLuint load_texture(const char *path)
    SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    return tex;
+#endif
 }
 
 void retro_init(void)
-{}
+{
+#ifdef EMSCRIPTEN
+   RWebCamInit();
+#endif
+}
 
 void retro_deinit(void)
-{}
+{
+#ifdef EMSCRIPTEN
+   RWebCamFree();
+#endif
+}
 
 unsigned retro_api_version(void)
 {
@@ -316,16 +360,16 @@ void retro_set_environment(retro_environment_t cb)
    struct retro_variable variables[] = {
       { "resolution",
 #ifdef GLES
-         "Internal resolution; 320x240|360x480|480x272|512x384|512x512|640x240|640x448|640x480|720x576|800x600|960x720|1024x768" },
+         "Internal resolution; 800x600|320x240|360x480|480x272|512x384|512x512|640x240|640x448|640x480|720x576|800x600|960x720|1024x768" },
 #else
       "Internal resolution; 320x240|360x480|480x272|512x384|512x512|640x240|640x448|640x480|720x576|800x600|960x720|1024x768|1024x1024|1280x720|1280x960|1600x1200|1920x1080|1920x1440|1920x1600" },
 #endif
                         {
          "cube_size",
-         "Cube size; 1|2|4|8|16|32|64|128" },
+         "Cube size; 4|1|2|4|8|16|32|64|128" },
                         {
          "cube_stride",
-         "Cube stride; 2.0|3.0|4.0|5.0|6.0|7.0|8.0" },
+         "Cube stride; 3.0|2.0|3.0|4.0|5.0|6.0|7.0|8.0" },
                         {
          "launch_category",
 #if !defined(ANDROID) || !defined(IOS)
@@ -447,7 +491,7 @@ static void hit(vec3 cube)
 
 static void check_collision_cube()
 {
-   float cube_origin = cube_stride * ((float)cube_size / -2.0f);
+   //float cube_origin = cube_stride * ((float)cube_size / -2.0f);
    // emulate cube origin at {0, 0, 0}
    vec3 shifted_player_pos = player_pos;
    shifted_player_pos.z += 100;
@@ -455,11 +499,13 @@ static void check_collision_cube()
    vec3 closest_cube_pos = vec3(0, 0, 0);//cube_origin + closest_cube * cube_stride;
    vec3 cube_distance = abs(shifted_player_pos - closest_cube_pos);
    vec3 cube_size_max = (vec3)((float)cube_size - 1);
+/*
    fprintf(stderr, "cube_origin: %f\n", cube_origin);
    fprintf(stderr, "shifted_player_pos: %f %f %f\n", shifted_player_pos.x, shifted_player_pos.y, shifted_player_pos.z);
    fprintf(stderr, "cube: %f %f %f\n", closest_cube.x, closest_cube.y, closest_cube.z);
    fprintf(stderr, "cube_pos: %f %f %f\n", closest_cube_pos.x, closest_cube_pos.y, closest_cube_pos.z);
    fprintf(stderr, "cube_distance: %f %f %f\n", cube_distance.x, cube_distance.y, cube_distance.z);
+*/
    if (check_closest_cube(cube_size_max, closest_cube) &&
          check_cube_distance_per_dimension(cube_distance))
       hit(closest_cube);
@@ -747,7 +793,18 @@ void retro_run(void)
    int tloc = SYM(glGetUniformLocation)(prog, "uTexture");
    SYM(glUniform1i)(tloc, 0);
    SYM(glActiveTexture)(GL_TEXTURE0);
+
+#ifdef EMSCRIPTEN
+   if (tex == 0)
+      tex = load_texture("");
+#endif
+
    SYM(glBindTexture)(GL_TEXTURE_2D, tex);
+
+#ifdef EMSCRIPTEN
+   if (tex != 0)
+      RWebCamTexSubImage2D(0, 0);
+#endif
 
    int lloc = SYM(glGetUniformLocation)(prog, "light_pos");
    vec3 light_pos(0, 150, 15);
