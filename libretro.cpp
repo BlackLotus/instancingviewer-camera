@@ -697,10 +697,10 @@ static void update_variables(void)
 
 }
 
+static bool cam_started;
+
 void retro_run(void)
 {
-   static bool cam_started = false;
-   
    if (!cam_started)
       cam_started = camera_cb.start();
    bool updated = false;
@@ -842,6 +842,7 @@ bool retro_load_game(const struct retro_game_info *info)
    texpath = info->path;
 
    first_init = false;
+   cam_started = false;
 
    return true;
 }
