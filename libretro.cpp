@@ -16,6 +16,7 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 static struct retro_hw_render_callback hw_render;
+static struct retro_camera_callback camera_cb;
 
 using namespace glm;
 
@@ -214,77 +215,12 @@ static void setup_vao(void)
    update = true;
 }
 
-#ifdef EMSCRIPTEN
-#ifdef __cplusplus
-extern "C" {
-#endif
-int RWebCamInit(void);
-int RWebCamTexImage2D(int *width, int *height);
-int RWebCamTexSubImage2D(int x, int y);
-int RWebCamReady(void);
-void RWebCamFree(void);
-#ifdef __cplusplus
-}
-#endif
-#endif
-
-static GLuint load_texture(const char *path)
-{
-#ifdef EMSCRIPTEN
-   (void)path;
-   int width, height;
-
-   if (!RWebCamReady())
-      return 0;
-
-   GLuint tex;
-   SYM(glGenTextures)(1, &tex);
-   SYM(glBindTexture)(GL_TEXTURE_2D, tex);
-
-   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-   RWebCamTexImage2D(&width, &height);
-
-   printf("WebCam - width: %d  height: %d\n", width, height);
-   return tex;
-#else
-   uint8_t *data;
-   unsigned width, height;
-   if (!rpng_load_image_rgba(path, &data, &width, &height))
-   {
-      fprintf(stderr, "Couldn't load texture: %s\n", path);
-      return 0;
-   }
-
-   GLuint tex;
-   SYM(glGenTextures)(1, &tex);
-   SYM(glBindTexture)(GL_TEXTURE_2D, tex);
-
-   SYM(glTexImage2D)(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-         0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-   free(data);
-
-   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   return tex;
-#endif
-}
-
 void retro_init(void)
 {
-#ifdef EMSCRIPTEN
-   RWebCamInit();
-#endif
 }
 
 void retro_deinit(void)
 {
-#ifdef EMSCRIPTEN
-   RWebCamFree();
-#endif
 }
 
 unsigned retro_api_version(void)
@@ -519,7 +455,7 @@ static void context_reset(void)
    GL::init_symbol_map();
    compile_program();
    setup_vao();
-   tex = load_texture(texpath.c_str());
+   tex = 0;
 }
 
 #ifdef ANDROID
@@ -763,6 +699,10 @@ static void update_variables(void)
 
 void retro_run(void)
 {
+   static bool cam_started = false;
+   
+   if (!cam_started)
+      cam_started = camera_cb.start();
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables();
@@ -794,17 +734,7 @@ void retro_run(void)
    SYM(glUniform1i)(tloc, 0);
    SYM(glActiveTexture)(GL_TEXTURE0);
 
-#ifdef EMSCRIPTEN
-   if (tex == 0)
-      tex = load_texture("");
-#endif
-
    SYM(glBindTexture)(GL_TEXTURE_2D, tex);
-
-#ifdef EMSCRIPTEN
-   if (tex != 0)
-      RWebCamTexSubImage2D(0, 0);
-#endif
 
    int lloc = SYM(glGetUniformLocation)(prog, "light_pos");
    vec3 light_pos(0, 150, 15);
@@ -871,6 +801,12 @@ void retro_run(void)
    video_cb(RETRO_HW_FRAME_BUFFER_VALID, width, height, 0);
 }
 
+static void camera_gl_callback(unsigned texture_id, unsigned texture_target, const float *affine)
+{
+   // TODO: support GL_TEXTURE_RECTANGLE and others?
+   if (texture_target == GL_TEXTURE_2D)
+      tex = texture_id;
+}
 
 bool retro_load_game(const struct retro_game_info *info)
 {
@@ -880,6 +816,14 @@ bool retro_load_game(const struct retro_game_info *info)
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
       fprintf(stderr, "XRGB8888 is not supported.\n");
+      return false;
+   }
+
+   camera_cb.caps = (1 << RETRO_CAMERA_BUFFER_OPENGL_TEXTURE);
+   camera_cb.frame_opengl_texture = &camera_gl_callback;
+   if (!environ_cb(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &camera_cb))
+   {
+      fprintf(stderr, "camera is not supported.\n");
       return false;
    }
 
