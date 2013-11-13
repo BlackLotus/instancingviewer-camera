@@ -30,20 +30,6 @@ using namespace glm;
 #define MAX_HEIGHT 1600
 #endif
 
-enum {
-   LAUNCH_CATEGORY_GAME = 0,
-#if !defined(ANDROID) && !defined(IOS)
-   LAUNCH_CATEGORY_MOVIE,
-#endif
-   LAUNCH_CATEGORY_SCENE1,
-   LAUNCH_CATEGORY_SCENE2,
-   LAUNCH_CATEGORY_MODEL1,
-   LAUNCH_CATEGORY_MODEL2,
-   LAUNCH_CATEGORY_END
-};
-
-static unsigned launch_category = 0;
-
 static unsigned cube_size = 1;
 static float cube_stride = 4.0f;
 static unsigned width = BASE_WIDTH;
@@ -306,13 +292,6 @@ void retro_set_environment(retro_environment_t cb)
                         {
          "cube_stride",
          "Cube stride; 3.0|2.0|3.0|4.0|5.0|6.0|7.0|8.0" },
-                        {
-         "launch_category",
-#if !defined(ANDROID) || !defined(IOS)
-         "Launch category; games|movies|scene1|scene2|model1|model2" },
-#else
-         "Launch category; games|scene1|scene2|model1|model2" },
-#endif
       { NULL, NULL },
    };
 
@@ -368,61 +347,6 @@ static bool check_cube_distance_per_dimension(vec3 cube)
 static void hit(vec3 cube)
 {
    (void)cube;
-   char path[256];
-
-   switch (launch_category)
-   {
-      case LAUNCH_CATEGORY_GAME:
-         snprintf(path, sizeof(path), FORMAT_STR, LIB_DIR, "pcsx_rearmed");
-         if (environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)&path))
-         {
-            snprintf(path, sizeof(path), "%s/%s", ROM_DIR, "tombraider.bin");
-            environ_cb(RETRO_ENVIRONMENT_EXEC_ESCAPE, (void*)&path);
-         }
-         break;
-#if !defined(ANDROID) && !defined(IOS)
-      case LAUNCH_CATEGORY_MOVIE:
-         snprintf(path, sizeof(path), FORMAT_STR, LIB_DIR, "ffmpeg");
-         if (environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)&path))
-         {
-            snprintf(path, sizeof(path), "%s/%s", ROM_DIR, "lionking.mp4");
-            environ_cb(RETRO_ENVIRONMENT_EXEC_ESCAPE, (void*)&path);
-         }
-         break;
-#endif
-      case LAUNCH_CATEGORY_SCENE1:
-         snprintf(path, sizeof(path), FORMAT_STR, LIB_DIR, "scenewalker");
-         if (environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)&path))
-         {
-            snprintf(path, sizeof(path), "%s/%s", ROM_DIR, "models/silenthill3_chapel/model.obj");
-            environ_cb(RETRO_ENVIRONMENT_EXEC_ESCAPE, (void*)&path);
-         }
-         break;
-      case LAUNCH_CATEGORY_SCENE2:
-         snprintf(path, sizeof(path), FORMAT_STR, LIB_DIR, "scenewalker");
-         if (environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)&path))
-         {
-            snprintf(path, sizeof(path), "%s/%s", ROM_DIR, "models/Onechanbara - Hospital - by fullmoon/hospital.obj");
-            environ_cb(RETRO_ENVIRONMENT_EXEC_ESCAPE, (void*)&path);
-         }
-         break;
-      case LAUNCH_CATEGORY_MODEL1:
-         snprintf(path, sizeof(path), FORMAT_STR, LIB_DIR, "modelviewer");
-         if (environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)&path))
-         {
-            snprintf(path, sizeof(path), "%s/%s", ROM_DIR, "models/mazda-3-mps/mazda 3.obj");
-            environ_cb(RETRO_ENVIRONMENT_EXEC_ESCAPE, (void*)&path);
-         }
-         break;
-      case LAUNCH_CATEGORY_MODEL2:
-         snprintf(path, sizeof(path), FORMAT_STR, LIB_DIR, "modelviewer");
-         if (environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)&path))
-         {
-            snprintf(path, sizeof(path), "%s/%s", ROM_DIR, "models/Vanille-working/vanille_obj.obj");
-            environ_cb(RETRO_ENVIRONMENT_EXEC_ESCAPE, (void*)&path);
-         }
-         break;
-   }
 }
 
 static void check_collision_cube()
@@ -458,12 +382,6 @@ static void context_reset(void)
    tex = 0;
 }
 
-#ifdef ANDROID
-#define PICS_HOME "/storage/sdcard1/roms"
-#else
-#define PICS_HOME "/home/squarepusher/roms"
-#endif
-
 static vec3 check_input()
 {
    static unsigned select_timeout = 0;
@@ -494,106 +412,6 @@ static vec3 check_input()
       player_pos -= s * look_dir_side;
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
       player_pos += s * look_dir_side;
-
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT) 
-         && select_timeout == 0)
-   {
-      select_timeout = 30;
-      switch (launch_category)
-      {
-#if !defined(ANDROID) && !defined(IOS)
-         case LAUNCH_CATEGORY_GAME:
-            launch_category = LAUNCH_CATEGORY_MOVIE;
-            texpath = std::string(PICS_HOME) + "/lionking.png";
-            context_reset();
-            break;
-         case LAUNCH_CATEGORY_MOVIE:
-            launch_category = LAUNCH_CATEGORY_SCENE1;
-            texpath = std::string(PICS_HOME) + "/scene1.png";
-            context_reset();
-            break;
-#else
-         case LAUNCH_CATEGORY_GAME:
-            launch_category = LAUNCH_CATEGORY_SCENE1;
-            texpath = std::string(PICS_HOME) + "/scene1.png";
-            context_reset();
-            break;
-#endif
-         case LAUNCH_CATEGORY_SCENE1:
-            launch_category = LAUNCH_CATEGORY_SCENE2;
-            texpath = std::string(PICS_HOME) + "/scene2.png";
-            context_reset();
-            break;
-         case LAUNCH_CATEGORY_SCENE2:
-            launch_category = LAUNCH_CATEGORY_MODEL1;
-            texpath = std::string(PICS_HOME) + "/model1.png";
-            context_reset();
-            break;
-         case LAUNCH_CATEGORY_MODEL1:
-            launch_category = LAUNCH_CATEGORY_MODEL2;
-            texpath = std::string(PICS_HOME) + "/model2.png";
-            context_reset();
-            break;
-         default:
-            launch_category = LAUNCH_CATEGORY_GAME;
-            texpath = std::string(PICS_HOME) + "/tombraider.png";
-            context_reset();
-      }
-
-      switch (launch_category)
-      {
-         case LAUNCH_CATEGORY_GAME:
-            {
-               struct retro_message msg = {
-                  "Category: Games",
-                  180 };
-               environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
-            }
-            break;
-#if !defined(ANDROID) && !defined(IOS)
-         case LAUNCH_CATEGORY_MOVIE:
-            {
-               struct retro_message msg = {
-                  "Category: Movies",
-                  180 };
-               environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
-            }
-            break;
-#endif
-         case LAUNCH_CATEGORY_SCENE1:
-            {
-               struct retro_message msg = {
-                  "Category: Scene 1",
-                  180 };
-               environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
-            }
-            break;
-         case LAUNCH_CATEGORY_SCENE2:
-            {
-               struct retro_message msg = {
-                  "Category: Scene 2",
-                  180 };
-               environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
-            }
-            break;
-         case LAUNCH_CATEGORY_MODEL1:
-            {
-               struct retro_message msg = {
-                  "Category: Cars",
-                  180 };
-               environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
-            }
-            break;
-         case LAUNCH_CATEGORY_MODEL2:
-            {
-               struct retro_message msg = {
-                  "Category: Models",
-                  180 };
-               environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
-            }
-            break;
-      }
-   }
    else if (select_timeout != 0)
       select_timeout--;
 
@@ -651,50 +469,6 @@ static void update_variables(void)
       if (!first_init)
          context_reset();
    }
-
-   var.key = "launch_category";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-      if (strcmp(var.value, "games") == 0)
-      {
-         launch_category = LAUNCH_CATEGORY_GAME;
-         texpath = std::string(PICS_HOME) + "/tombraider.png";
-      }
-#if !defined(ANDROID) && !defined(IOS)
-      else if (strcmp(var.value, "movies") == 0)
-      {
-         launch_category = LAUNCH_CATEGORY_MOVIE;
-         texpath = std::string(PICS_HOME) + "/lionking.png";
-      }
-#endif
-      else if (strcmp(var.value, "scene1") == 0)
-      {
-         launch_category = LAUNCH_CATEGORY_SCENE1;
-         texpath = std::string(PICS_HOME) + "/scene1.png";
-      }
-      else if (strcmp(var.value, "scene2") == 0)
-      {
-         launch_category = LAUNCH_CATEGORY_SCENE2;
-         texpath = std::string(PICS_HOME) + "/scene2.png";
-      }
-      else if (strcmp(var.value, "model1") == 0)
-      {
-         launch_category = LAUNCH_CATEGORY_MODEL1;
-         texpath = std::string(PICS_HOME) + "/model1.png";
-      }
-      else if (strcmp(var.value, "model2") == 0)
-      {
-         launch_category = LAUNCH_CATEGORY_MODEL2;
-         texpath = std::string(PICS_HOME) + "/model2.png";
-      }
-      update = true;
-
-      if (!first_init)
-         context_reset();
-   }
-
 }
 
 static bool cam_started;
