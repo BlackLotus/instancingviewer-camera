@@ -223,7 +223,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
-   info->library_name     = "InstancingViewer GL";
+   info->library_name     = "InstancingViewer Camera GL";
    info->library_version  = "v2";
    info->need_fullpath    = false;
    info->valid_extensions = "png";
