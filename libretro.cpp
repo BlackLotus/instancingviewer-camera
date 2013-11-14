@@ -292,6 +292,9 @@ void retro_set_environment(retro_environment_t cb)
                         {
          "cube_stride",
          "Cube stride; 3.0|2.0|3.0|4.0|5.0|6.0|7.0|8.0" },
+                        {
+         "camera-type",
+         "Camera FB Type; texture|raw framebuffer" },
       { NULL, NULL },
    };
 
@@ -379,7 +382,6 @@ static void context_reset(void)
    GL::init_symbol_map();
    compile_program();
    setup_vao();
-   tex = 0;
 }
 
 static vec3 check_input()
@@ -582,9 +584,96 @@ static void camera_gl_callback(unsigned texture_id, unsigned texture_target, con
       tex = texture_id;
 }
 
+static inline bool gl_query_extension(const char *ext)
+{
+   const char *str = (const char*)glGetString(GL_EXTENSIONS);
+   bool ret = str && strstr(str, ext);
+
+   return ret;
+}
+
+static bool support_unpack_row_length;
+static uint8_t *convert_buffer;
+
+#ifndef GL_BGRA_EXT
+#define GL_BGRA_EXT 0x80E1
+#endif
+#ifndef GL_UNPACK_ROW_LENGTH
+#define GL_UNPACK_ROW_LENGTH  0x0CF2
+#endif
+
+#ifdef GLES
+#define INTERNAL_FORMAT GL_BGRA_EXT
+#define TEX_TYPE    GL_BGRA_EXT
+#define TEX_FORMAT      GL_UNSIGNED_BYTE
+#else
+#define INTERNAL_FORMAT GL_RGBA
+#define TEX_TYPE    GL_BGRA
+#define TEX_FORMAT      GL_UNSIGNED_INT_8_8_8_8_REV
+#endif
+
+static void camera_raw_fb_callback(const uint32_t *buffer, unsigned width, unsigned height, size_t pitch)
+{
+   unsigned base_size = width * 4;
+   unsigned h;
+
+   if (!tex)
+   {
+      SYM(glGenTextures)(1, &tex);
+      SYM(glBindTexture)(GL_TEXTURE_2D, tex);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_CLAMP_TO_EDGE);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_CLAMP_TO_EDGE);
+      SYM(glTexImage2D)(GL_TEXTURE_2D, 0, INTERNAL_FORMAT, width, height, 0, TEX_TYPE, TEX_FORMAT, NULL);
+      if (!support_unpack_row_length)
+         convert_buffer = new uint8_t[width * height * 4];
+   }
+   else
+      SYM(glBindTexture)(GL_TEXTURE_2D, tex);
+
+   if (support_unpack_row_length)
+   {
+      SYM(glPixelStorei)(GL_UNPACK_ROW_LENGTH, pitch / base_size);
+      SYM(glTexSubImage2D)(GL_TEXTURE_2D,
+            0, 0, 0, width, height, TEX_TYPE,
+            TEX_FORMAT, buffer);
+
+      SYM(glPixelStorei)(GL_UNPACK_ROW_LENGTH, 0);
+   }
+   else
+   {
+      // No GL_UNPACK_ROW_LENGTH ;(
+      unsigned pitch_width = pitch / base_size;
+      if (width == pitch_width) // Happy path :D
+      {
+         SYM(glTexSubImage2D)(GL_TEXTURE_2D,
+               0, 0, 0, width, height, TEX_TYPE,
+               TEX_FORMAT, buffer);
+      }
+      else // Slower path.
+      {
+         const unsigned line_bytes = width * base_size;
+
+         uint8_t *dst = (uint8_t*)convert_buffer; // This buffer is preallocated for this purpose.
+         const uint8_t *src = (const uint8_t*)buffer;
+
+         for (h = 0; h < height; h++, src += pitch, dst += line_bytes)
+            memcpy(dst, src, line_bytes);
+
+         SYM(glTexSubImage2D)(GL_TEXTURE_2D,
+               0, 0, 0, width, height, TEX_TYPE,
+               TEX_FORMAT, convert_buffer);         
+      }
+   }
+
+   SYM(glBindTexture)(GL_TEXTURE_2D, 0);
+}
+
 bool retro_load_game(const struct retro_game_info *info)
 {
    update_variables();
+   memset(&camera_cb, 0, sizeof(camera_cb));
 
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
@@ -593,8 +682,21 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   camera_cb.caps = (1 << RETRO_CAMERA_BUFFER_OPENGL_TEXTURE);
-   camera_cb.frame_opengl_texture = &camera_gl_callback;
+   struct retro_variable camvar = { "camera-type" };
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &camvar) && camvar.value)
+   {
+      if (!strcmp(camvar.value, "texture"))
+      {
+         camera_cb.caps = (1 << RETRO_CAMERA_BUFFER_OPENGL_TEXTURE);
+         camera_cb.frame_opengl_texture = &camera_gl_callback;
+      }
+      else
+      {
+         camera_cb.caps = (1 << RETRO_CAMERA_BUFFER_RAW_FRAMEBUFFER);
+         camera_cb.frame_raw_framebuffer = &camera_raw_fb_callback;
+      }
+   }
+
    if (!environ_cb(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &camera_cb))
    {
       fprintf(stderr, "camera is not supported.\n");
@@ -611,6 +713,17 @@ bool retro_load_game(const struct retro_game_info *info)
    if (!environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
       return false;
 
+#ifdef GLES
+   if (camera_cb.caps & (1 << RETRO_CAMERA_BUFFER_RAW_FRAMEBUFFER) && !gl_query_extension("BGRA8888"))
+   {
+      fprintf(stderr, "no BGRA8888 support for raw framebuffer, exiting...\n");
+      return false;
+   }
+   support_unpack_row_length = gl_query_extension("GL_EXT_unpack_subimage");
+#else
+   support_unpack_row_length = true;
+#endif
+
    fprintf(stderr, "Loaded game!\n");
    player_pos = vec3(0, 0, 0);
    texpath = info->path;
@@ -622,7 +735,11 @@ bool retro_load_game(const struct retro_game_info *info)
 }
 
 void retro_unload_game(void)
-{}
+{
+   if (convert_buffer)
+      delete[] convert_buffer;
+   convert_buffer = nullptr;
+}
 
 unsigned retro_get_region(void)
 {
