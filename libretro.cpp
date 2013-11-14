@@ -738,7 +738,7 @@ void retro_unload_game(void)
 {
    if (convert_buffer)
       delete[] convert_buffer;
-   convert_buffer = nullptr;
+   convert_buffer = NULL;
 }
 
 unsigned retro_get_region(void)
