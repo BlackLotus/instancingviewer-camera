@@ -604,11 +604,11 @@ static uint8_t *convert_buffer;
 
 #ifdef GLES
 #define INTERNAL_FORMAT GL_BGRA_EXT
-#define TEX_TYPE    GL_BGRA_EXT
+#define TEX_TYPE        GL_BGRA_EXT
 #define TEX_FORMAT      GL_UNSIGNED_BYTE
 #else
 #define INTERNAL_FORMAT GL_RGBA
-#define TEX_TYPE    GL_BGRA
+#define TEX_TYPE        GL_BGRA
 #define TEX_FORMAT      GL_UNSIGNED_INT_8_8_8_8_REV
 #endif
 
@@ -621,10 +621,10 @@ static void camera_raw_fb_callback(const uint32_t *buffer, unsigned width, unsig
    {
       SYM(glGenTextures)(1, &tex);
       SYM(glBindTexture)(GL_TEXTURE_2D, tex);
-      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
-      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
-      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_CLAMP_TO_EDGE);
-      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_CLAMP_TO_EDGE);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      SYM(glTexParameteri)(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       SYM(glTexImage2D)(GL_TEXTURE_2D, 0, INTERNAL_FORMAT, width, height, 0, TEX_TYPE, TEX_FORMAT, NULL);
       if (!support_unpack_row_length)
          convert_buffer = new uint8_t[width * height * 4];
