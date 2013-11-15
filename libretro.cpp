@@ -614,7 +614,7 @@ static uint8_t *convert_buffer;
 
 static void camera_raw_fb_callback(const uint32_t *buffer, unsigned width, unsigned height, size_t pitch)
 {
-   unsigned base_size = width * 4;
+   unsigned base_size = 4;
    unsigned h;
 
    if (!tex)
