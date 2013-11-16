@@ -382,6 +382,7 @@ static void context_reset(void)
    GL::init_symbol_map();
    compile_program();
    setup_vao();
+   tex = 0;
 }
 
 static vec3 check_input()
@@ -473,12 +474,8 @@ static void update_variables(void)
    }
 }
 
-static bool cam_started;
-
 void retro_run(void)
 {
-   if (!cam_started)
-      cam_started = camera_cb.start();
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables();
@@ -670,6 +667,11 @@ static void camera_raw_fb_callback(const uint32_t *buffer, unsigned width, unsig
    SYM(glBindTexture)(GL_TEXTURE_2D, 0);
 }
 
+static void camera_initialized(void)
+{
+   camera_cb.start();
+}
+
 bool retro_load_game(const struct retro_game_info *info)
 {
    update_variables();
@@ -688,14 +690,15 @@ bool retro_load_game(const struct retro_game_info *info)
       if (!strcmp(camvar.value, "texture"))
       {
          camera_cb.caps = (1 << RETRO_CAMERA_BUFFER_OPENGL_TEXTURE);
-         camera_cb.frame_opengl_texture = &camera_gl_callback;
+         camera_cb.frame_opengl_texture = camera_gl_callback;
       }
       else
       {
          camera_cb.caps = (1 << RETRO_CAMERA_BUFFER_RAW_FRAMEBUFFER);
-         camera_cb.frame_raw_framebuffer = &camera_raw_fb_callback;
+         camera_cb.frame_raw_framebuffer = camera_raw_fb_callback;
       }
    }
+   camera_cb.initialized = camera_initialized;
 
    if (!environ_cb(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &camera_cb))
    {
@@ -729,7 +732,6 @@ bool retro_load_game(const struct retro_game_info *info)
    texpath = info->path;
 
    first_init = false;
-   cam_started = false;
 
    return true;
 }
