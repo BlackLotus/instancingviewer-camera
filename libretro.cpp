@@ -40,6 +40,7 @@ static std::string texpath;
 static GLuint prog;
 static GLuint vbo;
 static GLuint tex;
+static GLuint g_texture_target = GL_TEXTURE_2D;
 static bool update;
 
 static vec3 player_pos;
@@ -130,6 +131,9 @@ static const char *vertex_shader[] = {
 };
 
 static const char *fragment_shader[] = {
+#ifdef ANDROID
+   "#extension GL_OES_EGL_image_external : require\n"
+#endif
 #ifdef GLES
    "precision mediump float; \n",
 #endif
@@ -138,7 +142,11 @@ static const char *fragment_shader[] = {
    "varying vec2 tex_coord;",
    "uniform vec3 light_pos;",
    "uniform vec4 ambient_light;",
+#ifdef ANDROID
+   "uniform samplerExternalOES uTexture;",
+#else
    "uniform sampler2D uTexture;",
+#endif
 
    "void main() {",
    "  vec3 diff = light_pos - model_pos.xyz;",
@@ -507,7 +515,7 @@ void retro_run(void)
    SYM(glUniform1i)(tloc, 0);
    SYM(glActiveTexture)(GL_TEXTURE0);
 
-   SYM(glBindTexture)(GL_TEXTURE_2D, tex);
+   SYM(glBindTexture)(g_texture_target, tex);
 
    int lloc = SYM(glGetUniformLocation)(prog, "light_pos");
    vec3 light_pos(0, 150, 15);
@@ -569,16 +577,21 @@ void retro_run(void)
    SYM(glDisableVertexAttribArray)(vloc);
    SYM(glDisableVertexAttribArray)(nloc);
    SYM(glDisableVertexAttribArray)(tcloc);
-   SYM(glBindTexture)(GL_TEXTURE_2D, 0);
+   SYM(glBindTexture)(g_texture_target, 0);
 
    video_cb(RETRO_HW_FRAME_BUFFER_VALID, width, height, 0);
 }
 
 static void camera_gl_callback(unsigned texture_id, unsigned texture_target, const float *affine)
 {
+   g_texture_target = texture_target;
    // TODO: support GL_TEXTURE_RECTANGLE and others?
    if (texture_target == GL_TEXTURE_2D)
       tex = texture_id;
+#ifdef ANDROID
+   else if (texture_target == GL_TEXTURE_EXTERNAL_OES)
+      tex = texture_id;
+#endif
 }
 
 static inline bool gl_query_extension(const char *ext)
