@@ -596,7 +596,7 @@ static void camera_gl_callback(unsigned texture_id, unsigned texture_target, con
 
 static inline bool gl_query_extension(const char *ext)
 {
-   const char *str = (const char*)glGetString(GL_EXTENSIONS);
+   const char *str = (const char*)SYM(glGetString)(GL_EXTENSIONS);
    bool ret = str && strstr(str, ext);
 
    return ret;
