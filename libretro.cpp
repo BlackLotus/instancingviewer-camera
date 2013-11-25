@@ -596,10 +596,15 @@ static void camera_gl_callback(unsigned texture_id, unsigned texture_target, con
 
 static inline bool gl_query_extension(const char *ext)
 {
+#ifndef ANDROID
+   // This code crashes right now on Android 4.4 (but not 4.0 to 4.3), so comment it out for now
    const char *str = (const char*)SYM(glGetString)(GL_EXTENSIONS);
    bool ret = str && strstr(str, ext);
 
    return ret;
+#else
+   return false;
+#endif
 }
 
 static bool support_unpack_row_length;
