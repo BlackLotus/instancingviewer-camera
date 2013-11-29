@@ -64,7 +64,6 @@ namespace GL
          _D(glGetProgramiv),
          _D(glGenerateMipmap),
          _D(glGetIntegerv),
-         _D(glGetStringi),
          _D(glGenBuffers),
          _D(glBindBuffer),
          _D(glBufferData),
