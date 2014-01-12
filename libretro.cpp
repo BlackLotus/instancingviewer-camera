@@ -512,21 +512,8 @@ static void update_variables(void)
    }
 }
 
-void retro_run(void)
+static void display_cubes_array(void)
 {
-   bool updated = false;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-      update_variables();
-
-   vec3 look_dir = check_input();
-
-   SYM(glBindFramebuffer)(GL_FRAMEBUFFER, hw_render.get_current_framebuffer());
-   SYM(glClearColor)(0.1, 0.1, 0.1, 1.0);
-   SYM(glViewport)(0, 0, width, height);
-   SYM(glClear)(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-   SYM(glUseProgram)(prog);
-
    SYM(glBindBuffer)(GL_ARRAY_BUFFER, vbo);
    int vloc = SYM(glGetAttribLocation)(prog, "aVertex");
    SYM(glVertexAttribPointer)(vloc, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, vert)));
@@ -538,37 +525,9 @@ void retro_run(void)
    SYM(glVertexAttribPointer)(tcloc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, tex)));
    SYM(glEnableVertexAttribArray)(tcloc);
 
-   SYM(glEnable)(GL_DEPTH_TEST);
-   SYM(glEnable)(GL_CULL_FACE);
-
-   int tloc = SYM(glGetUniformLocation)(prog, "uTexture");
-   SYM(glUniform1i)(tloc, 0);
-   SYM(glActiveTexture)(GL_TEXTURE0);
-
-   SYM(glBindTexture)(g_texture_target, tex);
-
-   int lloc = SYM(glGetUniformLocation)(prog, "light_pos");
-   vec3 light_pos(0, 150, 15);
-   SYM(glUniform3fv)(lloc, 1, &light_pos[0]);
-
-   vec4 ambient_light(0.2, 0.2, 0.2, 1.0);
-   lloc = SYM(glGetUniformLocation)(prog, "ambient_light");
-   SYM(glUniform4fv)(lloc, 1, &ambient_light[0]);
-
-   int vploc = SYM(glGetUniformLocation)(prog, "uVP");
-   mat4 view = lookAt(player_pos, player_pos + look_dir, vec3(0, 1, 0));
-   mat4 proj = scale(mat4(1.0), vec3(1, -1, 1)) * perspective(45.0f, 640.0f / 480.0f, 5.0f, 500.0f);
-   mat4 vp = proj * view;
-   SYM(glUniformMatrix4fv)(vploc, 1, GL_FALSE, &vp[0][0]);
-
-   int modelloc = SYM(glGetUniformLocation)(prog, "uM");
-   mat4 model = mat4(1.0);
-   SYM(glUniformMatrix4fv)(modelloc, 1, GL_FALSE, &model[0][0]);
-
    if (update)
    {
       update = false;
-      SYM(glBindBuffer)(GL_ARRAY_BUFFER, vbo);
 
       std::vector<Cube> cubes;
       cubes.resize(cube_size * cube_size * cube_size);
@@ -601,12 +560,57 @@ void retro_run(void)
    }
 
    SYM(glDrawArrays)(GL_TRIANGLES, 0, 36 * cube_size * cube_size * cube_size);
-
-   SYM(glUseProgram)(0);
    SYM(glBindBuffer)(GL_ARRAY_BUFFER, 0);
    SYM(glDisableVertexAttribArray)(vloc);
    SYM(glDisableVertexAttribArray)(nloc);
    SYM(glDisableVertexAttribArray)(tcloc);
+}
+
+void retro_run(void)
+{
+   bool updated = false;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+      update_variables();
+
+   vec3 look_dir = check_input();
+
+   SYM(glBindFramebuffer)(GL_FRAMEBUFFER, hw_render.get_current_framebuffer());
+   SYM(glClearColor)(0.1, 0.1, 0.1, 1.0);
+   SYM(glViewport)(0, 0, width, height);
+   SYM(glClear)(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   SYM(glUseProgram)(prog);
+
+   SYM(glEnable)(GL_DEPTH_TEST);
+   SYM(glEnable)(GL_CULL_FACE);
+
+   int tloc = SYM(glGetUniformLocation)(prog, "uTexture");
+   SYM(glUniform1i)(tloc, 0);
+   SYM(glActiveTexture)(GL_TEXTURE0);
+
+   SYM(glBindTexture)(g_texture_target, tex);
+
+   int lloc = SYM(glGetUniformLocation)(prog, "light_pos");
+   vec3 light_pos(0, 150, 15);
+   SYM(glUniform3fv)(lloc, 1, &light_pos[0]);
+
+   vec4 ambient_light(0.2, 0.2, 0.2, 1.0);
+   lloc = SYM(glGetUniformLocation)(prog, "ambient_light");
+   SYM(glUniform4fv)(lloc, 1, &ambient_light[0]);
+
+   int vploc = SYM(glGetUniformLocation)(prog, "uVP");
+   mat4 view = lookAt(player_pos, player_pos + look_dir, vec3(0, 1, 0));
+   mat4 proj = scale(mat4(1.0), vec3(1, -1, 1)) * perspective(45.0f, 640.0f / 480.0f, 5.0f, 500.0f);
+   mat4 vp = proj * view;
+   SYM(glUniformMatrix4fv)(vploc, 1, GL_FALSE, &vp[0][0]);
+
+   int modelloc = SYM(glGetUniformLocation)(prog, "uM");
+   mat4 model = mat4(1.0);
+   SYM(glUniformMatrix4fv)(modelloc, 1, GL_FALSE, &model[0][0]);
+
+   display_cubes_array();
+
+   SYM(glUseProgram)(0);
    SYM(glBindTexture)(g_texture_target, 0);
 
    video_cb(RETRO_HW_FRAME_BUFFER_VALID, width, height, 0);
