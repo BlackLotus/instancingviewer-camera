@@ -41,10 +41,7 @@ else ifneq (,$(findstring osx,$(platform)))
 # Raspberry Pi
 else ifneq ($(platform), rpi)
 	TARGET := $(TARGET_NAME)_libretro.so
-	LDFLAGS += -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-	#has to be set to work 	https://github.com/libretro/desmume/issues/20
-	CC=clang
-	CXX=clang++
+	SHARED += -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	fpic = -fPIC
 	GLES = 1
 	GL_LIB := -L/opt/vc/lib -lGLESv2
@@ -55,10 +52,7 @@ else ifneq ($(platform), rpi)
 else ifneq ($(platform), rpi2)
 	# right now rpi and rpi2 are identical but I would like to keep both so that you can set it as a default platform on other cores that actually have differences
 	TARGET := $(TARGET_NAME)_libretro.so
-	LDFLAGS += -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-	#has to be set to work 	https://github.com/libretro/desmume/issues/20
-	CC=clang
-	CXX=clang++
+	SHARED += -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T
 	fpic = -fPIC
 	GLES = 1
 	GL_LIB := -L/opt/vc/lib -lGLESv2
@@ -150,7 +144,7 @@ ifeq ($(GLES), 1)
 ifeq ($(platform), ios)
    LIBS += $(GL_LIB)
 else
-   LIBS += -lGLESv2
+   LIBS += -lGLESv2 $(GL_LIB)
 endif
 else
    LIBS += $(GL_LIB)
