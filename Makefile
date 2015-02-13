@@ -38,6 +38,34 @@ else ifneq (,$(findstring osx,$(platform)))
    CFLAGS += $(DEFINES)
    CXXFLAGS += $(DEFINES)
    INCFLAGS = -Iinclude/compat
+# Raspberry Pi
+else ifneq ($(platform), rpi)
+	TARGET := $(TARGET_NAME)_libretro.so
+	LDFLAGS += -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+	#has to be set to work 	https://github.com/libretro/desmume/issues/20
+	CC=clang
+	CXX=clang++
+	fpic = -fPIC
+	GLES = 1
+	GL_LIB := -L/opt/vc/lib -lGLESv2
+	INCFLAGS += -I/opt/vc/include
+	CPUFLAGS += -DNO_ASM
+	PLATFORM_EXT := unix
+	WITH_DYNAREC=arm
+else ifneq ($(platform), rpi2)
+	# right now rpi and rpi2 are identical but I would like to keep both so that you can set it as a default platform on other cores that actually have differences
+	TARGET := $(TARGET_NAME)_libretro.so
+	LDFLAGS += -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+	#has to be set to work 	https://github.com/libretro/desmume/issues/20
+	CC=clang
+	CXX=clang++
+	fpic = -fPIC
+	GLES = 1
+	GL_LIB := -L/opt/vc/lib -lGLESv2
+	INCFLAGS += -I/opt/vc/include
+	CPUFLAGS += -DNO_ASM
+	PLATFORM_EXT := unix
+	WITH_DYNAREC=arm
 else ifneq (,$(findstring armv,$(platform)))
    CC = gcc
    CXX = g++
@@ -143,5 +171,3 @@ clean:
 	rm -f $(OBJECTS) $(TARGET)
 
 .PHONY: clean
-
-
